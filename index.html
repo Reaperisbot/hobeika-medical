@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. Hobeika — Endocrinologist | Clinic &amp; Medical Boutique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#06090e;
+  --ink2:#0a1018;
+  --panel:rgba(13,22,32,.62);
+  --gold:#36c5c9;
+  --gold-2:#8ee6e4;
+  --gold-3:#157a80;
+  --cream:#eef6f8;
+  --muted:#7e93a3;
+  --line:rgba(54,197,201,.22);
+  --serif:'Cormorant Garamond',serif;
+  --sans:'Inter',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--ink);
+  color:var(--cream);
+  font-family:var(--sans);
+  font-weight:300;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--gold);color:var(--ink)}
+::-webkit-scrollbar{width:9px}
+::-webkit-scrollbar-track{background:var(--ink)}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--gold-3),var(--gold));border-radius:9px}
+
+/* ---------- 3D canvas ---------- */
+#bg3d{position:fixed;inset:0;z-index:0;pointer-events:none}
+#bg3d canvas{display:block}
+
+/* film grain */
+.grain{position:fixed;inset:-50%;z-index:3;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+  animation:grain 7s steps(10) infinite}
+@keyframes grain{
+  0%,100%{transform:translate(0,0)}10%{transform:translate(-5%,-7%)}30%{transform:translate(4%,3%)}
+  50%{transform:translate(-6%,5%)}70%{transform:translate(6%,-4%)}90%{transform:translate(-3%,6%)}}
+
+/* ---------- preloader ---------- */
+#loader{position:fixed;inset:0;z-index:100;background:var(--ink);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:26px;transition:opacity .9s ease,visibility .9s}
+#loader.done{opacity:0;visibility:hidden}
+.loader-mono{font-family:var(--serif);font-size:clamp(2rem,5vw,3.4rem);letter-spacing:.45em;text-indent:.45em;
+  background:linear-gradient(110deg,var(--gold-3) 20%,var(--gold-2) 50%,var(--gold-3) 80%);
+  background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:shimmer 2.2s linear infinite}
+.loader-bar{width:180px;height:1px;background:rgba(54,197,201,.2);overflow:hidden}
+.loader-bar i{display:block;height:100%;width:40%;background:var(--gold);animation:loadbar 1.4s ease-in-out infinite}
+@keyframes loadbar{0%{transform:translateX(-110%)}100%{transform:translateX(280%)}}
+@keyframes shimmer{to{background-position:-200% 0}}
+
+/* ---------- progress + nav ---------- */
+#progress{position:fixed;top:0;left:0;height:2px;width:100%;z-index:60;
+  background:linear-gradient(90deg,var(--gold-3),var(--gold),var(--gold-2));
+  transform-origin:0 50%;transform:scaleX(0)}
+nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:26px clamp(22px,5vw,64px);transition:.5s}
+nav.scrolled{background:rgba(6,9,14,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--line);padding-top:14px;padding-bottom:14px}
+.logo{font-family:var(--serif);font-size:1.35rem;letter-spacing:.32em;color:var(--cream);text-decoration:none}
+.logo b{color:var(--gold);font-weight:600}
+.nav-links{display:flex;gap:38px;list-style:none}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;
+  transition:.3s;position:relative}
+.nav-links a::after{content:"";position:absolute;left:0;bottom:-6px;height:1px;width:0;background:var(--gold);transition:.4s}
+.nav-links a:hover{color:var(--gold-2)}
+.nav-links a:hover::after{width:100%}
+@media(max-width:760px){.nav-links{display:none}}
+
+/* ---------- shared ---------- */
+main{position:relative;z-index:5}
+section{position:relative;padding:clamp(90px,12vh,150px) clamp(22px,6vw,80px)}
+.wrap{max-width:1240px;margin:0 auto}
+.kicker{display:flex;align-items:center;gap:14px;color:var(--gold);font-size:.7rem;letter-spacing:.38em;
+  text-transform:uppercase;margin-bottom:26px}
+.kicker::before{content:"";width:46px;height:1px;background:var(--gold)}
+h2{font-family:var(--serif);font-weight:500;font-size:clamp(2.4rem,5.4vw,4.4rem);line-height:1.05;margin-bottom:22px}
+h2 em{font-style:italic;color:var(--gold-2)}
+.lead{color:var(--muted);max-width:560px;line-height:1.85;font-size:1.02rem}
+
+/* gold button */
+.btn{display:inline-flex;align-items:center;gap:14px;padding:18px 42px;border:1px solid var(--gold);
+  color:var(--gold-2);font-size:.72rem;letter-spacing:.3em;text-transform:uppercase;text-decoration:none;
+  position:relative;overflow:hidden;transition:color .45s;background:transparent;cursor:pointer}
+.btn::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,var(--gold-3),var(--gold),var(--gold-2));
+  transform:translateY(101%);transition:transform .5s cubic-bezier(.77,0,.18,1);z-index:-1}
+.btn:hover{color:var(--ink)}
+.btn:hover::before{transform:translateY(0)}
+.btn.ghost{border-color:rgba(238,246,248,.25);color:var(--cream)}
+
+/* ---------- reveal engine ---------- */
+[data-reveal]{opacity:0;transform:translateY(70px);filter:blur(10px);
+  transition:opacity 1.1s cubic-bezier(.16,1,.3,1),transform 1.1s cubic-bezier(.16,1,.3,1),filter 1.1s}
+[data-reveal="left"]{transform:translateX(-90px)}
+[data-reveal="right"]{transform:translateX(90px)}
+[data-reveal="scale"]{transform:scale(.85)}
+[data-reveal].in{opacity:1;transform:none;filter:blur(0)}
+/* cards & testimonials use keyframe reveal so hover transforms stay snappy */
+.card[data-reveal]:not(.in),.testi[data-reveal]:not(.in){transition:none}
+.card[data-reveal].in,.testi[data-reveal].in{animation:cardIn 1.1s cubic-bezier(.16,1,.3,1) backwards}
+@keyframes cardIn{from{opacity:0;transform:translateY(70px);filter:blur(10px)}
+  to{opacity:1;transform:none;filter:blur(0)}}
+
+/* ---------- hero ---------- */
+#hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;
+  padding-top:120px;perspective:900px}
+.hero-inner{max-width:1000px}
+.hero-top{color:var(--gold);font-size:.72rem;letter-spacing:.5em;text-transform:uppercase;margin-bottom:34px;
+  opacity:0;animation:fadeUp 1.2s .3s forwards}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(3.2rem,10vw,8.2rem);line-height:.98;
+  letter-spacing:.01em}
+h1 .row{display:block;overflow:hidden}
+h1 .row span{display:block;transform:translateY(110%);animation:riseUp 1.3s cubic-bezier(.16,1,.3,1) forwards}
+h1 .row:nth-child(2) span{animation-delay:.18s}
+h1 .gold{background:linear-gradient(110deg,var(--gold-3) 10%,var(--gold-2) 45%,#f2feff 50%,var(--gold-2) 55%,var(--gold-3) 90%);
+  background-size:220% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:riseUp 1.3s .18s cubic-bezier(.16,1,.3,1) forwards,shimmer 5s 1.6s linear infinite}
+.hero-sub{color:var(--muted);max-width:520px;margin:36px auto 48px;line-height:1.9;
+  opacity:0;animation:fadeUp 1.2s .8s forwards}
+.hero-cta{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;opacity:0;animation:fadeUp 1.2s 1.05s forwards}
+@keyframes riseUp{to{transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.scroll-hint{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;
+  align-items:center;gap:12px;color:var(--muted);font-size:.62rem;letter-spacing:.4em;text-transform:uppercase}
+.scroll-hint i{width:1px;height:56px;background:linear-gradient(var(--gold),transparent);display:block;
+  animation:drip 2s ease-in-out infinite;transform-origin:top}
+@keyframes drip{0%{transform:scaleY(0)}45%{transform:scaleY(1)}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* ---------- marquee ---------- */
+.marquee{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:22px 0;overflow:hidden;
+  background:rgba(8,12,18,.5);backdrop-filter:blur(6px)}
+.marquee-track{display:flex;width:max-content;animation:scrollX 28s linear infinite}
+.marquee span{font-family:var(--serif);font-size:1.3rem;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--muted);padding:0 34px;white-space:nowrap}
+.marquee span b{color:var(--gold);font-weight:400}
+@keyframes scrollX{to{transform:translateX(-50%)}}
+
+/* ---------- about ---------- */
+.about-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(40px,7vw,110px);align-items:center}
+@media(max-width:900px){.about-grid{grid-template-columns:1fr}}
+.about-visual{position:relative;aspect-ratio:4/5;border:1px solid var(--line);overflow:hidden;
+  background:linear-gradient(160deg,rgba(54,197,201,.08),rgba(6,9,14,.4) 60%)}
+.about-visual video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;
+  filter:saturate(.92) contrast(1.04)}
+.about-visual::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(160deg,rgba(54,197,201,.10),rgba(6,9,14,.35) 70%)}
+.about-visual::after{content:"";position:absolute;inset:18px;border:1px solid rgba(54,197,201,.18);z-index:2;pointer-events:none}
+@keyframes floaty{0%,100%{transform:translateY(-12px) rotate(-4deg)}50%{transform:translateY(12px) rotate(4deg)}}
+.pill-list{margin-top:40px;display:grid;gap:0}
+.pill-list div{display:flex;align-items:baseline;gap:20px;padding:20px 0;border-bottom:1px solid rgba(238,246,248,.08)}
+.pill-list b{font-family:var(--serif);color:var(--gold);font-size:1.4rem;font-weight:500;min-width:48px}
+.pill-list p{color:var(--muted);font-size:.92rem;line-height:1.7}
+.pill-list p strong{color:var(--cream);font-weight:500;display:block;letter-spacing:.06em;margin-bottom:4px}
+
+/* ---------- products ---------- */
+#products{background:linear-gradient(rgba(10,16,24,0),rgba(10,16,24,.55) 18%,rgba(10,16,24,.55) 82%,rgba(10,16,24,0))}
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:26px;margin-top:64px}
+.card{position:relative;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(14px);
+  padding:44px 36px;transform-style:preserve-3d;will-change:transform;
+  transition:transform .18s ease-out,border-color .4s,box-shadow .4s}
+.card:hover{border-color:rgba(54,197,201,.6);box-shadow:0 30px 80px -20px rgba(54,197,201,.18)}
+.card .shine{position:absolute;inset:0;background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(142,230,228,.13),transparent 45%);
+  opacity:0;transition:opacity .4s;pointer-events:none}
+.card:hover .shine{opacity:1}
+.card-icon{font-size:2rem;margin-bottom:26px;display:inline-block;transform:translateZ(46px);
+  filter:drop-shadow(0 6px 14px rgba(54,197,201,.35))}
+.card h3{font-family:var(--serif);font-weight:500;font-size:1.7rem;margin-bottom:6px;transform:translateZ(34px)}
+.card .tag{color:var(--gold);font-size:.64rem;letter-spacing:.3em;text-transform:uppercase;transform:translateZ(28px);display:block;margin-bottom:18px}
+.card p{color:var(--muted);font-size:.9rem;line-height:1.75;transform:translateZ(20px)}
+.card .price{display:flex;align-items:center;justify-content:space-between;margin-top:30px;padding-top:24px;
+  border-top:1px solid rgba(238,246,248,.08);transform:translateZ(30px)}
+.card .price b{font-family:var(--serif);font-size:1.5rem;font-weight:600;color:var(--gold-2)}
+.card .price a{color:var(--cream);text-decoration:none;font-size:.66rem;letter-spacing:.26em;text-transform:uppercase;
+  border-bottom:1px solid var(--gold);padding-bottom:4px;transition:.3s}
+.card .price a:hover{color:var(--gold-2);letter-spacing:.34em}
+
+/* ---------- stats ---------- */
+#stats{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(6,9,14,.55);backdrop-filter:blur(8px)}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:40px;text-align:center}
+.stat b{font-family:var(--serif);font-weight:500;font-size:clamp(3rem,6vw,4.6rem);
+  background:linear-gradient(180deg,var(--gold-2),var(--gold-3));-webkit-background-clip:text;background-clip:text;color:transparent;display:block}
+.stat span{color:var(--muted);font-size:.7rem;letter-spacing:.3em;text-transform:uppercase;display:block;margin-top:10px}
+
+/* ---------- testimonials ---------- */
+.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:26px;margin-top:60px}
+.testi{border:1px solid rgba(238,246,248,.1);background:var(--panel);backdrop-filter:blur(12px);padding:42px 36px;
+  position:relative;transition:transform .5s cubic-bezier(.16,1,.3,1),border-color .4s}
+.testi:hover{transform:translateY(-10px);border-color:var(--line)}
+.testi::before{content:"“";font-family:var(--serif);font-size:5rem;color:var(--gold);position:absolute;
+  top:6px;left:28px;opacity:.35;line-height:1}
+.testi p{color:var(--cream);font-family:var(--serif);font-size:1.18rem;font-style:italic;line-height:1.7;margin:26px 0 30px}
+.testi .who b{display:block;font-size:.86rem;letter-spacing:.1em;font-weight:500}
+.testi .who span{color:var(--gold);font-size:.66rem;letter-spacing:.26em;text-transform:uppercase}
+
+/* ---------- booking form ---------- */
+#booking{background:linear-gradient(rgba(10,16,24,0),rgba(10,16,24,.55) 20%,rgba(10,16,24,.55) 80%,rgba(10,16,24,0))}
+.book-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:26px;margin-top:56px}
+@media(max-width:700px){.book-grid{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:10px}
+.field.full{grid-column:1/-1}
+.field label{font-size:.64rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
+.field input,.field select,.field textarea{background:rgba(13,22,32,.6);border:1px solid rgba(238,246,248,.14);
+  color:var(--cream);font-family:var(--sans);font-weight:300;font-size:.95rem;padding:16px 18px;outline:none;
+  transition:border-color .3s,box-shadow .3s;border-radius:0;color-scheme:dark;width:100%}
+.field textarea{resize:vertical;min-height:120px}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);
+  box-shadow:0 0 0 1px var(--gold),0 14px 44px -14px rgba(54,197,201,.35)}
+.field input::placeholder,.field textarea::placeholder{color:rgba(126,147,163,.6)}
+.field select option{background:var(--ink2);color:var(--cream)}
+.book-submit{grid-column:1/-1;display:flex;justify-content:center;margin-top:8px}
+.book-note{text-align:center;color:var(--muted);font-size:.78rem;margin-top:28px;letter-spacing:.06em}
+.book-note a{text-decoration:none}
+
+/* ---------- contact / footer ---------- */
+#contact .wrap{text-align:center;max-width:760px}
+#contact .lead{margin:0 auto 50px}
+footer{border-top:1px solid var(--line);padding:54px clamp(22px,6vw,80px);position:relative;z-index:5;
+  display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:space-between;background:rgba(6,9,14,.7);backdrop-filter:blur(10px)}
+footer small{color:var(--muted);font-size:.7rem;letter-spacing:.18em}
+footer .flinks{display:flex;gap:26px}
+footer .flinks a{color:var(--muted);font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;text-decoration:none;transition:.3s}
+footer .flinks a:hover{color:var(--gold-2)}
+
+/* big parallax word */
+.giant{position:absolute;left:50%;transform:translateX(-50%);font-family:var(--serif);font-weight:600;
+  font-size:clamp(6rem,20vw,17rem);color:transparent;-webkit-text-stroke:1px rgba(54,197,201,.1);
+  white-space:nowrap;pointer-events:none;z-index:0;top:0;line-height:1}
+</style>
+</head>
+<body>
+
+<div id="loader"><div class="loader-mono">HOBEIKA</div><div class="loader-bar"><i></i></div></div>
+<div id="progress"></div>
+<div id="bg3d"></div>
+<div class="grain"></div>
+
+<nav id="nav">
+  <a class="logo" href="#hero">DR<b>·</b>HOBEIKA</a>
+  <ul class="nav-links">
+    <li><a href="#about">Clinic</a></li>
+    <li><a href="#products">Collection</a></li>
+    <li><a href="#booking">Booking</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<main>
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-inner">
+    <div class="hero-top">Dr. Hobeika · Endocrinology · Diabetes · Thyroid</div>
+    <h1>
+      <span class="row"><span>The Science of</span></span>
+      <span class="row"><span class="gold">Hormonal Balance</span></span>
+    </h1>
+    <p class="hero-sub">The private practice and medical boutique of Dr. Hobeika, endocrinologist —
+      clinician-curated devices, diagnostics and formulations for diabetes, thyroid and metabolic
+      health, at prices that make excellence accessible.</p>
+    <div class="hero-cta">
+      <a class="btn" href="#booking">Book a Consultation</a>
+      <a class="btn ghost" href="#products">Explore the Collection</a>
+    </div>
+  </div>
+  <div class="scroll-hint">Scroll<i></i></div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee">
+  <div class="marquee-track" id="mtrack">
+    <span>Board-Certified Endocrinologist <b>✦</b></span><span>Diabetes &amp; Thyroid Care <b>✦</b></span>
+    <span>CE &amp; FDA Certified <b>✦</b></span><span>Clinician Curated <b>✦</b></span>
+    <span>Accessible Pricing <b>✦</b></span><span>By Appointment <b>✦</b></span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="giant" data-parallax="0.25">HOBEIKA</div>
+  <div class="wrap about-grid">
+    <div>
+      <div class="kicker" data-reveal>The Clinic</div>
+      <h2 data-reveal>Where endocrinology<br>meets <em>craftsmanship</em></h2>
+      <p class="lead" data-reveal>The practice of Dr. Hobeika is built on a simple conviction:
+        hormonal health deserves precision, patience and the right tools. Alongside consultations
+        in diabetes, thyroid and metabolic medicine, the clinic boutique offers a curated range of
+        devices and formulations — each one personally vetted, fairly priced, and supported after purchase.</p>
+      <div class="pill-list">
+        <div data-reveal><b>01</b><p><strong>Personally Vetted</strong>Every product reviewed and approved by Dr. Hobeika before it enters the collection.</p></div>
+        <div data-reveal><b>02</b><p><strong>Honest Pricing</strong>Sourced directly from manufacturers so quality care stays affordable.</p></div>
+        <div data-reveal><b>03</b><p><strong>Continuous Care</strong>Setup, training and follow-up included with every device — in clinic or remotely.</p></div>
+      </div>
+    </div>
+    <div class="about-visual" data-reveal="right">
+      <video src="Man_entering_hospital_202606102032.mp4" autoplay muted loop playsinline></video>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section id="products">
+  <div class="wrap">
+    <div class="kicker" data-reveal>The Collection</div>
+    <h2 data-reveal>Instruments of <em>precision</em></h2>
+    <p class="lead" data-reveal>Six essentials from the clinic boutique — clinician-approved,
+      fairly priced, and ready to take home after your visit.</p>
+    <div class="prod-grid">
+      <div class="card" data-reveal data-tilt><div class="shine"></div>
+        <span class="card-icon">🩸</span><span class="tag">Diabetes Care</span>
+        <h3>CGM Starter Kit</h3>
+        <p>Continuous glucose monitoring — 14-day sensor, phone app and in-clinic setup with Dr. Hobeika's team. No finger pricks.</p>
+        <div class="price"><b>$89</b><a href="#booking">Acquire</a></div>
+      </div>
+      <div class="card" data-reveal data-tilt><div class="shine"></div>
+        <span class="card-icon">🫀</span><span class="tag">Diagnostics</span>
+        <h3>Pulse Mini</h3>
+        <p>Clinically validated blood-pressure monitor with irregular-heartbeat detection. Compact, rechargeable, app-synced.</p>
+        <div class="price"><b>$59</b><a href="#booking">Acquire</a></div>
+      </div>
+      <div class="card" data-reveal data-tilt><div class="shine"></div>
+        <span class="card-icon">⚖️</span><span class="tag">Metabolic Health</span>
+        <h3>Metabolic Scale</h3>
+        <p>Body-composition analysis — weight, fat, muscle and visceral readings, tracked over time and shared with your care plan.</p>
+        <div class="price"><b>$69</b><a href="#booking">Acquire</a></div>
+      </div>
+      <div class="card" data-reveal data-tilt><div class="shine"></div>
+        <span class="card-icon">🦋</span><span class="tag">Thyroid</span>
+        <h3>Thyra Series</h3>
+        <p>Pharmaceutical-grade selenium, iodine and vitamin-D support, formulated to complement your thyroid treatment plan.</p>
+        <div class="price"><b>$39</b><a href="#booking">Acquire</a></div>
+      </div>
+      <div class="card" data-reveal data-tilt><div class="shine"></div>
+        <span class="card-icon">💉</span><span class="tag">Diabetes Care</span>
+        <h3>Insulin Voyage Case</h3>
+        <p>Temperature-controlled travel case keeping insulin cool for 72 hours. Slim profile, airline-approved.</p>
+        <div class="price"><b>$49</b><a href="#booking">Acquire</a></div>
+      </div>
+      <div class="card" data-reveal data-tilt><div class="shine"></div>
+        <span class="card-icon">🔬</span><span class="tag">Diagnostics</span>
+        <h3>HbA1c Home Lab</h3>
+        <p>Quarterly at-home glycated-hemoglobin test kit — lab-grade results reviewed by the clinic between visits.</p>
+        <div class="price"><b>$45</b><a href="#booking">Acquire</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section id="stats">
+  <div class="wrap stats-grid">
+    <div class="stat" data-reveal="scale"><b data-count="18">0</b><span>Years of practice</span></div>
+    <div class="stat" data-reveal="scale"><b data-count="12400">0</b><span>Patients served</span></div>
+    <div class="stat" data-reveal="scale"><b data-count="98">0</b><span>% satisfaction</span></div>
+    <div class="stat" data-reveal="scale"><b data-count="40">0</b><span>Curated brands</span></div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="voices">
+  <div class="giant" data-parallax="0.2" style="top:-40px">VOICES</div>
+  <div class="wrap">
+    <div class="kicker" data-reveal>Voices</div>
+    <h2 data-reveal>Trusted by <em>patients</em></h2>
+    <div class="testi-grid">
+      <div class="testi" data-reveal>
+        <p>Dr. Hobeika found in one visit what others missed for years. My CGM was fitted and working before I left the clinic.</p>
+        <div class="who"><b>Maya K.</b><span>Patient since 2021</span></div>
+      </div>
+      <div class="testi" data-reveal>
+        <p>Thyroid care that actually feels personal — and the boutique prices are fair, which is rare for this level of quality.</p>
+        <div class="who"><b>Joseph A.</b><span>Thyroid patient</span></div>
+      </div>
+      <div class="testi" data-reveal>
+        <p>From diagnosis to my home glucose kit, everything was seamless. The follow-up between visits is exceptional.</p>
+        <div class="who"><b>Rita S.</b><span>Diabetes patient</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BOOKING -->
+<section id="booking">
+  <div class="giant" data-parallax="0.22" style="top:-30px">CONSULT</div>
+  <div class="wrap" style="max-width:880px">
+    <div class="kicker" data-reveal style="justify-content:center">Appointments</div>
+    <h2 data-reveal style="text-align:center">Book a <em>consultation</em></h2>
+    <p class="lead" data-reveal style="margin:0 auto;text-align:center">In-clinic or by video.
+      Share a few details and the clinic will confirm your appointment within one business day.</p>
+    <form class="book-grid" id="bookform" data-reveal novalidate>
+      <div class="field"><label for="bf-name">Full name</label>
+        <input id="bf-name" required placeholder="Your name"></div>
+      <div class="field"><label for="bf-phone">Phone</label>
+        <input id="bf-phone" type="tel" required placeholder="+961 ..."></div>
+      <div class="field"><label for="bf-date">Preferred date</label>
+        <input id="bf-date" type="date"></div>
+      <div class="field"><label for="bf-type">Consultation type</label>
+        <select id="bf-type">
+          <option>In-clinic visit</option><option>Video consultation</option>
+          <option>Follow-up</option><option>Product advice</option>
+        </select></div>
+      <div class="field full"><label for="bf-msg">Reason for visit</label>
+        <textarea id="bf-msg" placeholder="Diabetes, thyroid, hormonal health…"></textarea></div>
+      <div class="book-submit"><button class="btn" type="submit">Request Appointment</button></div>
+    </form>
+    <p class="book-note" data-reveal>Requests open your email app — or call
+      <a href="tel:+9611234567" style="color:var(--gold-2)">+961 1 234 567</a> directly.</p>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="wrap">
+    <div class="kicker" data-reveal style="justify-content:center">Visit Us</div>
+    <h2 data-reveal>The clinic <em>awaits</em></h2>
+    <p class="lead" data-reveal>Dr. Hobeika Endocrinology Clinic — consultations by appointment,
+      boutique open to patients during clinic hours.</p>
+    <div data-reveal style="display:flex;gap:18px;justify-content:center;flex-wrap:wrap">
+      <a class="btn" href="mailto:clinic@drhobeika.com">clinic@drhobeika.com</a>
+      <a class="btn ghost" href="tel:+9611234567">+961 1 234 567</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <small>© 2026 DR. HOBEIKA — Endocrinology Clinic &amp; Medical Boutique. By appointment only.</small>
+  <div class="flinks"><a href="#about">Clinic</a><a href="#products">Collection</a><a href="#booking">Booking</a><a href="#contact">Contact</a></div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============ PRELOADER ============ */
+window.addEventListener('load',()=>setTimeout(()=>document.getElementById('loader').classList.add('done'),900));
+
+/* ============ NAV + PROGRESS + PARALLAX ============ */
+const nav=document.getElementById('nav'),prog=document.getElementById('progress');
+const pll=document.querySelectorAll('[data-parallax]');
+function onScroll(){
+  const y=window.scrollY,h=document.documentElement.scrollHeight-innerHeight;
+  prog.style.transform='scaleX('+(h?y/h:0)+')';
+  nav.classList.toggle('scrolled',y>60);
+  pll.forEach(el=>{
+    const r=el.parentElement.getBoundingClientRect();
+    el.style.transform='translateX(-50%) translateY('+(r.top*parseFloat(el.dataset.parallax))+'px)';
+  });
+}
+addEventListener('scroll',onScroll,{passive:true});onScroll();
+
+/* ============ REVEAL ON SCROLL ============ */
+const io=new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}
+}),{threshold:.12,rootMargin:'0px 0px -8% 0px'});
+document.querySelectorAll('[data-reveal]').forEach((el,i)=>{
+  const d=(i%4)*0.08+'s';el.style.transitionDelay=d;el.style.animationDelay=d;io.observe(el);
+});
+
+/* ============ COUNTERS ============ */
+const cio=new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting)return;cio.unobserve(e.target);
+  const el=e.target,end=+el.dataset.count,t0=performance.now(),dur=2200;
+  (function tick(t){
+    const p=Math.min((t-t0)/dur,1),v=Math.round(end*(1-Math.pow(1-p,4)));
+    el.textContent=v.toLocaleString()+(p===1&&end>=1000?'+':'');
+    if(p<1)requestAnimationFrame(tick);
+  })(t0);
+}),{threshold:.6});
+document.querySelectorAll('[data-count]').forEach(el=>cio.observe(el));
+
+/* ============ 3D TILT CARDS ============ */
+document.querySelectorAll('[data-tilt]').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;
+    card.style.transform='perspective(900px) rotateX('+((.5-y)*14)+'deg) rotateY('+((x-.5)*14)+'deg) translateY(-6px)';
+    card.style.setProperty('--mx',x*100+'%');card.style.setProperty('--my',y*100+'%');
+  });
+  card.addEventListener('mouseleave',()=>card.style.transform='perspective(900px) rotateX(0) rotateY(0)');
+});
+
+/* ============ BOOKING FORM ============ */
+document.getElementById('bookform').addEventListener('submit',e=>{
+  e.preventDefault();
+  const v=id=>document.getElementById(id).value.trim();
+  if(!v('bf-name')||!v('bf-phone')){alert('Please add your name and phone number.');return;}
+  const body='Name: '+v('bf-name')+'\nPhone: '+v('bf-phone')
+    +'\nPreferred date: '+(v('bf-date')||'Flexible')+'\nType: '+v('bf-type')
+    +'\n\nReason for visit:\n'+(v('bf-msg')||'—');
+  location.href='mailto:clinic@drhobeika.com?subject='
+    +encodeURIComponent('Consultation request — '+v('bf-name'))
+    +'&body='+encodeURIComponent(body);
+});
+
+/* ============ MARQUEE (duplicate for seamless loop) ============ */
+const mt=document.getElementById('mtrack');mt.innerHTML+=mt.innerHTML;
+
+/* ============ THREE.JS GOLDEN SCENE ============ */
+(function(){
+  const holder=document.getElementById('bg3d');
+  const scene=new THREE.Scene();
+  scene.fog=new THREE.FogExp2(0x06090e,0.05);
+  const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,100);
+  camera.position.set(0,0,11);
+  const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  holder.appendChild(renderer.domElement);
+
+  /* lights */
+  scene.add(new THREE.AmbientLight(0x16323b,1.2));
+  const key=new THREE.DirectionalLight(0xe9fbff,1.4);key.position.set(5,8,6);scene.add(key);
+  const rim=new THREE.PointLight(0x36c5c9,2.2,40);rim.position.set(-6,-3,4);scene.add(rim);
+  const cool=new THREE.PointLight(0x8ea2ff,.6,40);cool.position.set(6,4,-6);scene.add(cool);
+
+  const gold=new THREE.MeshStandardMaterial({color:0x36c5c9,metalness:1,roughness:.28});
+  const goldLight=new THREE.MeshStandardMaterial({color:0x8ee6e4,metalness:1,roughness:.2});
+  const cream=new THREE.MeshStandardMaterial({color:0xeef6f8,metalness:.4,roughness:.5});
+  const wire=new THREE.MeshBasicMaterial({color:0x36c5c9,wireframe:true,transparent:true,opacity:.16});
+
+  const world=new THREE.Group();scene.add(world);
+
+  /* ---- DNA double helix ---- */
+  const dna=new THREE.Group();
+  const sGeo=new THREE.SphereGeometry(.13,18,18);
+  const rungGeo=new THREE.CylinderGeometry(.03,.03,1,8);
+  const up=new THREE.Vector3(0,1,0);
+  for(let i=0;i<42;i++){
+    const t=i/41,ang=t*Math.PI*4.2,y=(t-.5)*9,r=1.25;
+    const a=new THREE.Vector3(Math.cos(ang)*r,y,Math.sin(ang)*r);
+    const b=new THREE.Vector3(Math.cos(ang+Math.PI)*r,y,Math.sin(ang+Math.PI)*r);
+    const m1=new THREE.Mesh(sGeo,i%2?gold:goldLight);m1.position.copy(a);dna.add(m1);
+    const m2=new THREE.Mesh(sGeo,i%2?goldLight:gold);m2.position.copy(b);dna.add(m2);
+    if(i%3===0){
+      const dir=b.clone().sub(a),rung=new THREE.Mesh(rungGeo,cream);
+      rung.scale.y=dir.length();rung.position.copy(a).add(dir.multiplyScalar(.5));
+      rung.quaternion.setFromUnitVectors(up,dir.normalize());dna.add(rung);
+    }
+  }
+  dna.position.set(3.4,0,-1);dna.rotation.z=.28;world.add(dna);
+
+  /* ---- floating capsule pills ---- */
+  function pill(){
+    const g=new THREE.Group();
+    const body=new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,1.1,24),gold);
+    const c1=new THREE.Mesh(new THREE.SphereGeometry(.32,24,24),gold);c1.position.y=.55;
+    const c2=new THREE.Mesh(new THREE.SphereGeometry(.32,24,24),cream);c2.position.y=-.55;
+    const half=new THREE.Mesh(new THREE.CylinderGeometry(.321,.321,.55,24),cream);half.position.y=-.275;
+    g.add(body,c1,c2,half);return g;
+  }
+  const pills=[];
+  [[-4.6,2.2,-2],[-3.2,-2.6,0],[4.8,-3,-3],[-5.5,-.4,-4]].forEach((p,i)=>{
+    const pl=pill();pl.position.set(...p);
+    pl.rotation.set(Math.random()*3,Math.random()*3,Math.random()*3);
+    pl.userData={s:.4+Math.random()*.5,ph:i*1.7};
+    pills.push(pl);world.add(pl);
+  });
+
+  /* ---- sacred geometry ---- */
+  const knot=new THREE.Mesh(new THREE.TorusKnotGeometry(1.5,.34,140,20),
+    new THREE.MeshStandardMaterial({color:0x36c5c9,metalness:1,roughness:.32}));
+  knot.position.set(-3.8,1.2,-6);world.add(knot);
+  const ico=new THREE.Mesh(new THREE.IcosahedronGeometry(2.6,1),wire);
+  ico.position.set(4.5,2.8,-7);world.add(ico);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(3.6,.015,12,120),
+    new THREE.MeshBasicMaterial({color:0x36c5c9,transparent:true,opacity:.4}));
+  ring.rotation.x=Math.PI/2.4;ring.position.set(0,-1,-3);world.add(ring);
+  const ring2=ring.clone();ring2.scale.setScalar(1.5);ring2.rotation.x=Math.PI/1.8;world.add(ring2);
+
+  /* ---- particle dust ---- */
+  const N=600,pos=new Float32Array(N*3);
+  for(let i=0;i<N*3;i++)pos[i]=(Math.random()-.5)*30;
+  const pGeo=new THREE.BufferGeometry();
+  pGeo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const dust=new THREE.Points(pGeo,new THREE.PointsMaterial({color:0x8ee6e4,size:.045,transparent:true,opacity:.55}));
+  scene.add(dust);
+
+  /* ---- interaction state ---- */
+  let mx=0,my=0,sy=0,syT=0;
+  addEventListener('mousemove',e=>{mx=(e.clientX/innerWidth-.5);my=(e.clientY/innerHeight-.5);});
+  addEventListener('scroll',()=>{syT=window.scrollY;},{passive:true});
+  addEventListener('resize',()=>{
+    camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth,innerHeight);
+  });
+
+  const clock=new THREE.Clock();
+  (function animate(){
+    requestAnimationFrame(animate);
+    const t=clock.getElapsedTime();
+    sy+=(syT-sy)*.06; // eased scroll
+    const sp=sy*.0011;
+
+    dna.rotation.y=t*.35+sp*2.2;
+    dna.position.y=Math.sin(t*.6)*.25-sp*1.5;
+    knot.rotation.x=t*.2+sp;knot.rotation.y=t*.28;
+    knot.position.y=1.2+Math.sin(t*.5+2)*.4;
+    ico.rotation.y=t*.12+sp*1.4;ico.rotation.z=t*.07;
+    ring.rotation.z=t*.1+sp;ring2.rotation.z=-t*.08-sp;
+    pills.forEach(p=>{
+      p.rotation.x+=.004;p.rotation.y+=.006;
+      p.position.y+=Math.sin(t*p.userData.s+p.userData.ph)*.004;
+    });
+    dust.rotation.y=t*.018+sp*.4;
+
+    world.rotation.y=sp*.6+mx*.18;
+    world.rotation.x=sp*.18+my*.12;
+    world.position.y=-sp*2.4;
+    camera.position.x+=(mx*1.6-camera.position.x)*.04;
+    camera.position.y+=(-my*1.2-camera.position.y)*.04;
+    camera.lookAt(0,0,-2);
+    renderer.render(scene,camera);
+  })();
+})();
+</script>
+</body>
+</html>
